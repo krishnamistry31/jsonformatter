@@ -9,8 +9,9 @@ class MainComponent extends Component {
         this.state = {
           parsedObj: {},
           value: '',
-          msg : '',
-          processClicked: false
+          errMsg : '',
+          processClicked: false,
+          isHidden: false
         };
     }
     
@@ -20,22 +21,26 @@ class MainComponent extends Component {
 
     Validate(){
         if(this.state.value.trim === ""){
-            this.setState({msg : 'Enter value'})
+            this.setState({errMsg : 'Enter value'})
+            this.setState({msg : ''})
         }
         else{
             try{
                 var o = JSON.parse(this.state.value)
                 this.setState({msg : 'Valid JSON'})
+                this.setState({errMsg : ''})      
             }
             catch{
-                this.setState({msg : 'Invalid JSON'})
+                this.setState({errMsg : 'Invalid JSON'})
+                this.setState({msg : ''})
             }
         }
     }
 
     Process(){
         if(this.state.value.trim === ""){
-            this.setState({msg : 'Enter value'})
+            this.setState({errMsg : 'Enter value'})
+            this.setState({msg : ''})
         }
         else{
             try{
@@ -43,14 +48,21 @@ class MainComponent extends Component {
                 console.log(o)
                 this.setState({parsedObj : o})
                 this.setState({processClicked : true})
-                this.setState({msg : ''})      
+                this.setState({errMsg : ''})      
+                this.setState({msg : 'Valid JSON'})
             }
             catch{
-                this.setState({msg : 'Invalid JSON'})
+                this.setState({errMsg : 'Invalid JSON'})
+                this.setState({msg : ''})
             }
         }
     }
 
+    toggleHidden(){
+        this.setState({
+            isHidden: !this.state.isHidden
+        })
+    }
     render(){
         const obj = this.state.parsedObj;
         return (
@@ -65,27 +77,32 @@ class MainComponent extends Component {
                 placeholder="{}"
                 />
                 <br/>
-                {this.state.msg ? <p className = "msg">{this.state.msg}</p>:null}
+                {this.state.errMsg ? <p className = "errmsg">{this.state.errMsg}</p>:null}
+                {this.state.msg && !this.state.processClicked? <p className = "msg">{this.state.msg}</p>:null}
                 <br/>
                 <ul className="options">
                     <li><button className = "button" onClick = {()=>this.Validate()}>Validate</button></li>
                     <li><button className = "button" onClick = {()=>this.Process()}>Process</button></li>
                 </ul>
-                <div className="processedView" style={{display: this.state.processClicked ? 'block' : 'none' }}>
-                    <ul>{"{"}
-                        {
-                            Object.keys(obj).map((pKey,i)=>{
-                                return (
-                                    <li key={i}>
-                                        <DisplayComponent
-                                            pKey = {pKey}
-                                            pValue = {obj[pKey]}
-                                        />
-                                    </li>
-                                )
-                            })
-                        }
-                    {"}"}</ul>
+                <div style={{display: this.state.processClicked ? 'block' : 'none' }}>
+                    <h1>Formatted JSON data</h1>
+                    {this.state.msg ? <p className = "msg">{this.state.msg}</p>:null}
+                    <div className="processedView" >
+                        <ul>{"{"} <button className="togglebtn" onClick={this.toggleHidden.bind(this)}>{this.state.isHidden ? '+' : '-'}</button>
+                            { !this.state.isHidden &&
+                                Object.keys(obj).map((pKey,i)=>{
+                                    return (
+                                        <li key={i}>
+                                            <DisplayComponent
+                                                pKey = {pKey}
+                                                pValue = {obj[pKey]}
+                                            />
+                                        </li>
+                                    )
+                                })
+                            }
+                        {"}"}</ul>
+                    </div>
                 </div>
             </div>
         );
